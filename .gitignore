@@ -1,0 +1,10 @@
+node_modules/
+vendor/
+.env
+.env.local
+.DS_Store
+/dist
+/public/bundles
+/var/
+coverage/
+
