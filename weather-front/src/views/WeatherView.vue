@@ -26,6 +26,7 @@
           <th>Latitude</th>
           <th>Longitude</th>
           <th>Date</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -36,19 +37,35 @@
           <td>{{ entry.latitude }}</td>
           <td>{{ entry.longitude }}</td>
           <td>{{ new Date(entry.time).toLocaleString() }}</td>
+          <td>
+            <button class="btn btn-primary btn-sm" @click="openModal(entry)">
+              Modifier
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
+
+    <!-- Composant modal -->
+    <WeatherModal
+      v-if="selected"
+      :data="selected"
+      @close="selected = null"
+      @save="updateEntry"
+    />
   </div>
 </template>
 
 <script>
 import weatherService from "../services/weatherService";
+import WeatherModal from "../components/WeatherModal.vue";
 
 export default {
+  components: { WeatherModal },
   data() {
     return {
       weatherList: [],
+      selected: null, // ← Pour la modale
       cities: [
         { name: "Dijon", lat: 47.32, lon: 5.04 },
         { name: "Paris", lat: 48.8566, lon: 2.3522 },
@@ -78,6 +95,14 @@ export default {
         this.selectedCity.lon,
         this.selectedCity.name
       );
+      this.load();
+    },
+    openModal(entry) {
+      this.selected = { ...entry };
+    },
+    async updateEntry(updated) {
+      await weatherService.update(updated.id, updated);
+      this.selected = null;
       this.load();
     },
   },
