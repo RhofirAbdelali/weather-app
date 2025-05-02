@@ -32,27 +32,67 @@
       <tbody>
         <tr v-for="entry in weatherList" :key="entry.id">
           <td>{{ entry.city }}</td>
-          <td>{{ entry.temperature }}°C</td>
-          <td>{{ entry.windspeed }} km/h</td>
+          <td>{{ entry.temperature }}</td>
+          <td>{{ entry.windspeed }}</td>
           <td>{{ entry.latitude }}</td>
           <td>{{ entry.longitude }}</td>
           <td>{{ new Date(entry.time).toLocaleString() }}</td>
           <td>
-            <button class="btn btn-primary btn-sm" @click="openModal(entry)">
+            <button
+              class="btn btn-primary btn-sm me-2"
+              @click="openModal(entry)"
+            >
               Modifier
+            </button>
+            <button
+              class="btn btn-danger btn-sm"
+              @click="confirmDelete(entry.id)"
+            >
+              Supprimer
             </button>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- Composant modal -->
     <WeatherModal
       v-if="selected"
       :data="selected"
       @close="selected = null"
       @save="updateEntry"
     />
+
+    <!-- Modal de confirmation suppression -->
+    <div
+      v-if="showConfirm"
+      class="modal fade show d-block"
+      tabindex="-1"
+      style="background-color: rgba(0, 0, 0, 0.5)"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Confirmation</h5>
+            <button
+              type="button"
+              class="btn-close"
+              @click="showConfirm = false"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>Voulez-vous vraiment supprimer cette donnée météo ?</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showConfirm = false">
+              Annuler
+            </button>
+            <button class="btn btn-danger" @click="deleteEntry">
+              Supprimer
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -65,7 +105,9 @@ export default {
   data() {
     return {
       weatherList: [],
-      selected: null, // ← Pour la modale
+      selected: null,
+      showConfirm: false,
+      deleteId: null,
       cities: [
         { name: "Dijon", lat: 47.32, lon: 5.04 },
         { name: "Paris", lat: 48.8566, lon: 2.3522 },
@@ -104,6 +146,18 @@ export default {
       await weatherService.update(updated.id, updated);
       this.selected = null;
       this.load();
+    },
+    confirmDelete(id) {
+      this.deleteId = id;
+      this.showConfirm = true;
+    },
+    async deleteEntry() {
+      if (this.deleteId) {
+        await weatherService.delete(this.deleteId);
+        this.deleteId = null;
+        this.showConfirm = false;
+        this.load();
+      }
     },
   },
 };
